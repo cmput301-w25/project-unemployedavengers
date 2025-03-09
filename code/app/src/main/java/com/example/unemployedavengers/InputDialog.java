@@ -315,9 +315,15 @@ public class InputDialog extends DialogFragment {
                 String reason = binding.editReason.getText().toString();
                 String trigger = binding.editTrigger.getText().toString();
                 String situation = binding.editSocialSituation.getText().toString();
-                String radioSituation = ((RadioButton) v.getRootView().findViewById(binding.radioGroupSocial.getCheckedRadioButtonId())).getText().toString();
-
                 long time = System.currentTimeMillis();
+
+                String radioSituation = "Not Set";
+                try {
+                    radioSituation = ((RadioButton) v.getRootView().findViewById(binding.radioGroupSocial.getCheckedRadioButtonId())).getText().toString();
+                }
+                catch (Exception e) {
+                    Log.d("Radio Group", "User did not pick a situation category");
+                }
 
                 reason = reason.trim();
                 trigger = trigger.trim();
@@ -332,9 +338,7 @@ public class InputDialog extends DialogFragment {
                     moodEvent.setRadioSituation(radioSituation);
                     //no need to change the time because we are editing the existing event
                     uploadImage(moodEvent);
-                } else {
-                    uploadNewEvent(moodEvent, mood, reason, trigger, situation, time, radioSituation);
-                }
+                } else uploadNewEvent(moodEvent, mood, reason, trigger, situation, time, radioSituation);
 
                 if (Objects.equals(source, "dashboard")) {
                     Navigation.findNavController(v)
