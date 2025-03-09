@@ -1,4 +1,4 @@
-package com.example.unemployedavengers.test;
+package com.example.unemployedavengers;
 
 import static org.junit.Assert.*;
 
