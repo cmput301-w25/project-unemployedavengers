@@ -11,6 +11,8 @@
 package com.example.unemployedavengers.auth;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,7 +49,9 @@ public class Profile extends Fragment {
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("user_preferences", Context.MODE_PRIVATE);
+        String username = sharedPreferences.getString("username", null);  // Default to null if not found
+        binding.tvProfileUsername.setText(username);
         // Navigate back to Dashboard when the Back button is clicked
         binding.btnBack.setOnClickListener(v ->
                 Navigation.findNavController(v)
@@ -71,6 +75,10 @@ public class Profile extends Fragment {
                 if (!newUsername.isEmpty()) {
                     userDAO.changeUsername(newUsername)
                             .addOnSuccessListener(exists -> {
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.putString("username", newUsername);
+                                editor.apply();
+                                binding.tvProfileUsername.setText(newUsername);
                                 Toast.makeText(getContext(), "User name changed to: " + newUsername, Toast.LENGTH_LONG).show();
                             })
                             .addOnFailureListener(e -> {
