@@ -17,7 +17,6 @@
             app:destination="@id/loginFragment" />
     </fragment>
 
-
     <!-- Sign up Fragment -->
     <fragment
         android:id="@+id/signUpFragment"
@@ -66,7 +65,7 @@
         android:label="dashboardFragment">
         <action
             android:id="@+id/action_dashboardFragment_to_friendsHistoryFragment"
-            app:destination="@id/friendsHistory" />
+            app:destination="@id/friendsHistoryFragment" />
         <action
             android:id="@+id/action_dashboardFragment_to_profileFragment"
             app:destination="@id/profileFragment" />
@@ -102,8 +101,6 @@
         <action
             android:id="@+id/action_passwordReset1Fragment_to_passwordReset2Fragment"
             app:destination="@id/passwordReset2Fragment" />
-
-
     </fragment>
 
     <!-- PasswordReset2 Fragment -->
@@ -119,15 +116,18 @@
             app:destination="@id/passwordReset1Fragment" />
     </fragment>
 
-    <!-- FriendsHistory Fragment -->
+    <!-- FriendsHistory Fragment - Changed ID to match bottom nav menu item -->
     <fragment
-        android:id="@+id/friendsHistory"
+        android:id="@+id/friendsHistoryFragment"
         android:name="com.example.unemployedavengers.friendSection.FriendsHistory"
-        android:label="friendHistory Fragment">
+        android:label="friendsHistory"
+        tools:layout="@layout/friends_history">
         <action
             android:id="@+id/action_friendsHistoryFragment_to_userSearchFragment"
             app:destination="@id/userSearch" />
-
+        <action
+            android:id="@+id/action_friendsHistoryFragment_to_followedUserMoodEventsFragment"
+            app:destination="@id/followedUserMoodEventsFragment" />
     </fragment>
 
     <!-- Profile Fragment -->
@@ -145,8 +145,22 @@
         android:id="@+id/userSearch"
         android:name="com.example.unemployedavengers.friendSection.UserSearch"
         android:label="userSearch Fragment">
-
     </fragment>
+
+    <!-- FollowedUserMoodEvents Fragment -->
+    <fragment
+        android:id="@+id/followedUserMoodEventsFragment"
+        android:name="com.example.unemployedavengers.friendSection.FollowedUserMoodEvents"
+        android:label="FollowedUserMoodEvents"
+        tools:layout="@layout/followed_user_mood_events">
+        <action
+            android:id="@+id/action_followedUserMoodEventsFragment_to_friendsHistoryFragment"
+            app:destination="@id/friendsHistoryFragment" />
+        <action
+            android:id="@+id/action_followedUserMoodEventsFragment_to_userSearchFragment"
+            app:destination="@id/userSearch" />
+    </fragment>
+
     <fragment
         android:id="@+id/inputDialog"
         android:name="com.example.unemployedavengers.InputDialog"
@@ -158,6 +172,4 @@
             android:id="@+id/action_inputDialog_to_historyFragment"
             app:destination="@id/historyFragment" />
     </fragment>
-
-
 </navigation>

@@ -14,4 +14,9 @@
         android:enabled="true"
         android:icon="@drawable/outline_access_time_24"
         android:title="History"/>
+    <item
+        android:id="@+id/followedUserMoodEventsFragment"
+        android:enabled="true"
+        android:icon="@drawable/ic_friend"
+        android:title="Friends"/>
 </menu>

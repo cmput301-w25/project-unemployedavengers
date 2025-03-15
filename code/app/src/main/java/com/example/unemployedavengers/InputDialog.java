@@ -2,7 +2,7 @@
  * InputDialog - DialogFragment for adding or editing mood events.
  *
  * Purpose:
- * - Collects user inputs including mood, reason, trigger, situation, and an image.
+ * - Collects user inputs including mood, reason, situation, and an image.
  * - Provides UI elements such as a spinner with custom styling, image upload, and text inputs.
  * - Sends the new or updated MoodEvent back to the parent fragment via FragmentResult.
  */
@@ -45,8 +45,6 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -108,7 +106,6 @@ public class InputDialog extends DialogFragment {
         return fragment;
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,8 +113,6 @@ public class InputDialog extends DialogFragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
-
-
     }
 
     @Override
@@ -160,9 +155,7 @@ public class InputDialog extends DialogFragment {
                         textView.setTextColor(Color.RED);
                         break;
                     case 1: // Confusion
-
                         textView.setTextColor(ContextCompat.getColor(parent.getContext(), R.color.orange));
-
                         break;
                     case 2: // Disgust
                         textView.setTextColor(Color.GREEN);
@@ -232,7 +225,6 @@ public class InputDialog extends DialogFragment {
         spinnerEmotion.setAdapter(adapter);
 
         return binding.getRoot();
-
     }
 
     private void setupImagePickerLaunchers() {
@@ -273,7 +265,6 @@ public class InputDialog extends DialogFragment {
                 });
     }
 
-
     @Override
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
@@ -299,13 +290,11 @@ public class InputDialog extends DialogFragment {
             //if we are updating
             if (moodEvent != null) {
                 //populate the fields with the data from the selected MoodEvent
-                EditText triggerEditText = view.findViewById(R.id.editTrigger);
                 EditText situationEditText = view.findViewById(R.id.editSocialSituation);
                 EditText reasonEditText = view.findViewById(R.id.editReason);
                 Spinner spinner = view.findViewById(R.id.spinnerEmotion);
 
                 //using getter function from model to get text
-                triggerEditText.setText(moodEvent.getTrigger());
                 situationEditText.setText(moodEvent.getSituation());
                 reasonEditText.setText(moodEvent.getReason());
 
@@ -319,14 +308,21 @@ public class InputDialog extends DialogFragment {
                     ((RadioButton) view.findViewById(R.id.radioNone)).setChecked(true);
                 }
 
+                // Check if the view exists before using it
+                RadioButton publicRadio = view.findViewById(R.id.radioPublicStatus);
+                RadioButton privateRadio = view.findViewById(R.id.radioPrivateStatus);
 
-
-                if (moodEvent.getPublicStatus()){
-                    ((RadioButton) view.findViewById(R.id.radioPublicStatus)).setChecked(true);
-                }else{
-                    ((RadioButton) view.findViewById(R.id.radioPrivateStatus)).setChecked(true);
+                if (publicRadio != null && privateRadio != null) {
+                    try {
+                        if (moodEvent.getPublicStatus()){
+                            publicRadio.setChecked(true);
+                        } else {
+                            privateRadio.setChecked(true);
+                        }
+                    } catch (Exception e) {
+                        Log.d("InputDialog", "Public status not supported in this MoodEvent model");
+                    }
                 }
-
 
                 //using the adapter in onCreateview
                 ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) spinner.getAdapter();
@@ -338,58 +334,62 @@ public class InputDialog extends DialogFragment {
                 if (position != -1) {
                     spinner.setSelection(position);
                 }
-
             }
         }
 
         //when user clicks confirm
         binding.buttonConfirm.setOnClickListener(v -> {
-                //get all relevant information
-                String mood = (String) binding.spinnerEmotion.getSelectedItem();
-                String reason = binding.editReason.getText().toString();
-                String trigger = binding.editTrigger.getText().toString();
-                String situation = binding.editSocialSituation.getText().toString();
-                long time = System.currentTimeMillis();
-                boolean publicStatus = binding.radioPublicStatus.isChecked();
+            //get all relevant information
+            String mood = (String) binding.spinnerEmotion.getSelectedItem();
+            String reason = binding.editReason.getText().toString();
+            String situation = binding.editSocialSituation.getText().toString();
+            long time = System.currentTimeMillis();
 
-                String radioSituation = "Not Set";
+            // Check if radioPublicStatus exists before accessing it
+            boolean publicStatus = false;
+            if (binding.radioPublicStatus != null) {
+                publicStatus = binding.radioPublicStatus.isChecked();
+            }
+
+            String radioSituation = "Not Set";
+            try {
+                radioSituation = ((RadioButton) v.getRootView().findViewById(binding.radioGroupSocial.getCheckedRadioButtonId())).getText().toString();
+            }
+            catch (Exception e) {
+                Log.d("Radio Group", "User did not pick a situation category");
+            }
+
+            reason = reason.trim();
+            situation = situation.trim();
+
+            //if moodEvent exists, update it otherwise create a new one
+            if (moodEvent != null) {
+                moodEvent.setMood(mood);
+                moodEvent.setReason(reason);
+                moodEvent.setSituation(situation);
+                moodEvent.setRadioSituation(radioSituation);
+
+                // Only set public status if the model supports it
                 try {
-                    radioSituation = ((RadioButton) v.getRootView().findViewById(binding.radioGroupSocial.getCheckedRadioButtonId())).getText().toString();
-                }
-                catch (Exception e) {
-                    Log.d("Radio Group", "User did not pick a situation category");
-                }
-
-                reason = reason.trim();
-                trigger = trigger.trim();
-                situation = situation.trim();
-
-
-
-                //if moodEvent exists, update it otherwise create a new one
-                if (moodEvent != null) {
-                    moodEvent.setMood(mood);
-                    moodEvent.setReason(reason);
-                    moodEvent.setTrigger(trigger);
-                    moodEvent.setSituation(situation);
-                    moodEvent.setRadioSituation(radioSituation);
                     moodEvent.setPublicStatus(publicStatus);
-
-
-                    //no need to change the time because we are editing the existing event
-                    uploadImage(moodEvent);
-                } else uploadNewEvent(moodEvent, mood, reason, trigger, situation, time, radioSituation,publicStatus);
-
-                if (Objects.equals(source, "dashboard")) {
-                    Navigation.findNavController(v)
-                            .navigate(R.id.action_inputDialog_to_dashboardFragment);
-                } else if (Objects.equals(source, "history")){
-                    Navigation.findNavController(v)
-                            .navigate(R.id.action_inputDialog_to_historyFragment);
+                } catch (Exception e) {
+                    Log.d("InputDialog", "Public status not supported in this MoodEvent model");
                 }
 
-        });
+                //no need to change the time because we are editing the existing event
+                uploadImage(moodEvent);
+            } else {
+                uploadNewEvent(mood, reason, situation, time, radioSituation, publicStatus);
+            }
 
+            if (Objects.equals(source, "dashboard")) {
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_inputDialog_to_dashboardFragment);
+            } else if (Objects.equals(source, "history")){
+                Navigation.findNavController(v)
+                        .navigate(R.id.action_inputDialog_to_historyFragment);
+            }
+        });
 
         //go right back to dashboard
         binding.buttonCancel.setOnClickListener(v ->{
@@ -404,67 +404,104 @@ public class InputDialog extends DialogFragment {
         });
     }
 
-    private void uploadNewEvent(MoodEvent moodEvent, String mood, String reason, String trigger,
-                                String situation, long time, String radioSituation,boolean publicStatus) {
+    // Helper method to send result
+    private void sendResultToParent(MoodEvent event) {
+        Bundle result = new Bundle();
+        result.putSerializable("mood_event_key", event);
+        getParentFragmentManager().setFragmentResult("input_dialog_result", result);
+    }
+
+    private void uploadNewEvent(String mood, String reason,
+                                String situation, long time, String radioSituation, boolean publicStatus) {
         // Create a new MoodEvent with empty image URL initially
+        final MoodEvent newMoodEvent;
 
+        try {
+            // Try to create MoodEvent with public status parameter
+            newMoodEvent = new MoodEvent(mood, reason, situation, time, radioSituation, "", publicStatus);
+        } catch (NoSuchMethodError methodError) {
+            // Fallback to constructor without public status
+            final MoodEvent tempMoodEvent = new MoodEvent(mood, reason, situation, time, radioSituation, "");
 
-        MoodEvent newMoodEvent = new MoodEvent(mood, reason, trigger, situation, time, radioSituation, "",publicStatus);
+            // Try to set public status via setter if available
+            try {
+                tempMoodEvent.setPublicStatus(publicStatus);
+            } catch (Exception ex) {
+                Log.d("InputDialog", "Public status not supported in this MoodEvent model");
+            }
 
+            // Send the result without image if there's no image to upload
+            if (imageUri == null) {
+                sendResultToParent(tempMoodEvent);
+                return;
+            }
 
-
-
-
-        if (imageUri != null) {
+            // Continue with image upload for the temporary MoodEvent
             StorageReference storageRef = storage.getReference();
             StorageReference imageRef = storageRef.child("mood_images/" + UUID.randomUUID() + ".jpg");
-
-            // Show loading indicator if needed
 
             imageRef.putFile(imageUri)
                     .addOnSuccessListener(taskSnapshot ->
                             imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                                 // Update the image URL and send result
-                                newMoodEvent.setImageUri(uri.toString());
-                                sendResultToParent(newMoodEvent);
+                                tempMoodEvent.setImageUri(uri.toString());
+                                sendResultToParent(tempMoodEvent);
                             }))
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    .addOnFailureListener(uploadError -> {
+                        Toast.makeText(getContext(), "Image upload failed: " + uploadError.getMessage(), Toast.LENGTH_SHORT).show();
                         // Still send the event, just without an image
-                        sendResultToParent(newMoodEvent);
+                        sendResultToParent(tempMoodEvent);
                     });
-        } else {
-            // No image to upload, send result immediately
-            sendResultToParent(newMoodEvent);
+            return;
         }
+
+        // If we reach this point, we successfully created the MoodEvent with the public status parameter
+
+        // Send the result without image if there's no image to upload
+        if (imageUri == null) {
+            sendResultToParent(newMoodEvent);
+            return;
+        }
+
+        // Otherwise continue with image upload
+        StorageReference storageRef = storage.getReference();
+        StorageReference imageRef = storageRef.child("mood_images/" + UUID.randomUUID() + ".jpg");
+
+        final MoodEvent finalMoodEvent = newMoodEvent; // Create a final copy for the lambda
+
+        imageRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot ->
+                        imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            // Update the image URL and send result
+                            finalMoodEvent.setImageUri(uri.toString());
+                            sendResultToParent(finalMoodEvent);
+                        }))
+                .addOnFailureListener(uploadError -> {
+                    Toast.makeText(getContext(), "Image upload failed: " + uploadError.getMessage(), Toast.LENGTH_SHORT).show();
+                    // Still send the event, just without an image
+                    sendResultToParent(finalMoodEvent);
+                });
     }
 
-    // Helper method to send result
-    private void sendResultToParent(MoodEvent event) {
-
-        Bundle result = new Bundle();
-        result.putSerializable("mood_event_key", event);
-        getParentFragmentManager().setFragmentResult("input_dialog_result", result);
-
-    }
     private void uploadImage(MoodEvent moodEvent) {
         if (imageUri != null) {
             StorageReference storageRef = storage.getReference();
             StorageReference imageRef = storageRef.child("mood_images/" + UUID.randomUUID() + ".jpg");
 
-            // Show loading indicator if needed
+            // Create a final copy for the lambda
+            final MoodEvent finalMoodEvent = moodEvent;
 
             imageRef.putFile(imageUri)
                     .addOnSuccessListener(taskSnapshot ->
                             imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                                 // Update the image URL and send result
-                                moodEvent.setImageUri(uri.toString());
-                                sendResultToParent(moodEvent);
+                                finalMoodEvent.setImageUri(uri.toString());
+                                sendResultToParent(finalMoodEvent);
                             }))
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Image upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    .addOnFailureListener(uploadError -> {
+                        Toast.makeText(getContext(), "Image upload failed: " + uploadError.getMessage(), Toast.LENGTH_SHORT).show();
                         // Still send the event with its original image URL
-                        sendResultToParent(moodEvent);
+                        sendResultToParent(finalMoodEvent);
                     });
         } else {
             // No new image to upload, send result immediately

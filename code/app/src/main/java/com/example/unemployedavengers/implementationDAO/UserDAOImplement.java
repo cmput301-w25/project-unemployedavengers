@@ -22,6 +22,8 @@
 
 package com.example.unemployedavengers.implementationDAO;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.unemployedavengers.DAO.IUserDAO;
@@ -383,13 +385,13 @@ public class UserDAOImplement implements IUserDAO {
                 .collection("requests")
                 .document(requesterId);
 
-        // Reference to the requester's "following" subcollection (indicating they are following the target)
+        // Reference to the requester's "following" subcollection
         DocumentReference followerFollowingRef = db.collection("users")
                 .document(requesterId)
                 .collection("following")
                 .document(targetId);
 
-        // Reference to the target user's "followers" subcollection (indicating they are followed by the requester)
+        // Reference to the target user's "followers" subcollection
         DocumentReference followedFollowersRef = db.collection("users")
                 .document(targetId)
                 .collection("followers")
@@ -410,12 +412,17 @@ public class UserDAOImplement implements IUserDAO {
         // Use a Firestore batch to execute all operations atomically
         WriteBatch batch = db.batch();
         batch.delete(requestDocRef); // Remove the follow request
-        batch.set(followerFollowingRef, followingData); // Add requester to target's followers
-        batch.set(followedFollowersRef, followerData); // Add target to requester's following list
+        batch.set(followerFollowingRef, followingData); // Add target to requester's following list
+        batch.set(followedFollowersRef, followerData); // Add requester to target's followers list
 
-        return batch.commit(); // Execute the batch operation
+        return batch.commit()
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("FollowRequest", "Follow request accepted successfully");
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FollowRequest", "Failed to accept follow request", e);
+                });
     }
-
 
     /**
      * Rejects a follow request by deleting the request document from Firestore.

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="8dp"
+    android:paddingHorizontal="16dp">
+
+    <!-- Emoji for mood -->
+    <TextView
+        android:id="@+id/moodEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="😊"
+        android:textSize="24sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Mood text -->
+    <TextView
+        android:id="@+id/mood_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:text="Happy"
+        android:textSize="16sp"
+        android:textColor="#00BCD4"
+        app:layout_constraintStart_toEndOf="@+id/moodEmoji"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- User profile circle -->
+    <ImageView
+        android:id="@+id/profileCircle"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="48dp"
+        android:background="@drawable/circle_background"
+        android:backgroundTint="#9C27B0"
+        app:layout_constraintStart_toEndOf="@+id/mood_text"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- User profile icon -->
+    <ImageView
+        android:id="@+id/profileIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_person"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/profileCircle"
+        app:layout_constraintEnd_toEndOf="@+id/profileCircle"
+        app:layout_constraintStart_toStartOf="@+id/profileCircle"
+        app:layout_constraintTop_toTopOf="@+id/profileCircle" />
+
+    <!-- Friend ID/Username -->
+    <TextView
+        android:id="@+id/usernameText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Friend ID"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@+id/profileCircle"
+        app:layout_constraintTop_toTopOf="@+id/profileCircle"
+        app:layout_constraintBottom_toBottomOf="@+id/profileCircle" />
+
+    <!-- Date -->
+    <TextView
+        android:id="@+id/date_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="02/11/25"
+        android:textColor="#808080"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@+id/usernameText"
+        app:layout_constraintTop_toTopOf="@+id/usernameText"
+        app:layout_constraintBottom_toBottomOf="@+id/usernameText" />
+
+    <!-- We'll hide these as they're not visible in the screenshot design -->
+    <TextView
+        android:id="@+id/reasonText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/situationText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/moodImageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
