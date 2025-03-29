@@ -56,6 +56,8 @@ public class History extends Fragment {
     private MoodEvent selectedMoodForDeletion;
     private boolean isFiltered = false;
 
+    private boolean isMood, isReason,isWeek, seeAllSelect;
+    private String filterReason, filterMood;
 
     @Nullable
     @Override
@@ -131,10 +133,16 @@ public class History extends Fragment {
             Filter filterDialog = new Filter();
 
             filterDialog.setFilterListener((mood, reason, recentWeek, reasonText, spinnerSelection, seeAll) -> {
+                isMood = mood;
+                isReason =reason;
+                isWeek = recentWeek;
+                filterReason = reasonText;
+                filterMood = spinnerSelection;
+                seeAllSelect =seeAll;
                 ArrayList<MoodEvent> filterMoodList = new ArrayList<>(moodList);
-                if (seeAll) {
-                    loadHistoryMoodEvents();
+                if (seeAll||(!mood&&!reason&&!recentWeek)) {
                     isFiltered = false;
+                    loadHistoryMoodEvents();
                 } else {
                     isFiltered = true;
                     if (mood) {
@@ -222,14 +230,61 @@ public class History extends Fragment {
                             MoodEvent moodEvent = document.toObject(MoodEvent.class);
                             moodList.add(moodEvent);
                         }
+
                         /*
                         MoodEventsViewModel vm = new ViewModelProvider(requireActivity()).get(MoodEventsViewModel.class);
                         vm.setMoodEvents(moodList);
 
                          */
                         Collections.sort(moodList, (e1, e2) -> Long.compare(e2.getTime(), e1.getTime()));
-                        binding.historyList.setAdapter(moodAdapter);
-                        moodAdapter.notifyDataSetChanged();
+                        if (!isFiltered) {
+                            binding.historyList.setAdapter(moodAdapter);
+                            moodAdapter.notifyDataSetChanged();
+                        }else {
+                            ArrayList<MoodEvent> filterMoodList = new ArrayList<>(moodList);
+                            if (seeAllSelect || (!isMood && !isReason && !isWeek)) {
+                                isFiltered = false;
+                                loadHistoryMoodEvents();
+                            } else {
+                                isFiltered = true;
+                                if (isMood) {
+                                    ArrayList<MoodEvent> filteredByMood = new ArrayList<>();
+                                    for (MoodEvent event : filterMoodList) {
+                                        if (event.getMood() != null && event.getMood().contains(filterMood)) {
+                                            filteredByMood.add(event);
+                                        }
+                                    }
+                                    filterMoodList = filteredByMood;
+                                }
+                                if (isReason) {
+                                    ArrayList<MoodEvent> filteredByReason = new ArrayList<>();
+                                    for (MoodEvent event : filterMoodList) {
+                                        if (event.getReason().contains(filterReason)) {
+                                            filteredByReason.add(event);
+                                        }
+                                    }
+                                    filterMoodList = filteredByReason;
+                                }
+                                if (isWeek) {
+                                    long currentTime = System.currentTimeMillis();
+                                    long sevenDaysMillis = 7L * 24 * 60 * 60 * 1000;
+                                    ArrayList<MoodEvent> filteredByWeek = new ArrayList<>();
+                                    for (MoodEvent event : filterMoodList) {
+                                        if (event.getTime() >= (currentTime - sevenDaysMillis)) {
+                                            filteredByWeek.add(event);
+                                        }
+                                    }
+                                    filterMoodList = filteredByWeek;
+                                }
+                                filteredMoodList.clear();
+                                filteredMoodList.addAll(filterMoodList);
+                                MoodEventsViewModel vm = new ViewModelProvider(requireActivity()).get(MoodEventsViewModel.class);
+                                vm.setMoodEvents(filteredMoodList);
+                                binding.historyList.setAdapter(filteredMoodAdapter);
+                                filteredMoodAdapter.notifyDataSetChanged();
+                            }
+                        }
+
 
                         binding.historyList.setOnItemClickListener((parent, view, position, id) -> {
                             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
